@@ -1,5 +1,5 @@
-Basement: A wrapper for the Couchbase SDK
-=========================================
+Basement: The simple ODM for Couchbase on PHP
+=============================================
 
 Basement is a fast, efficient and helpful wrapper around the [Couchbase PHP SDK](http://www.couchbase.com/develop/php/next). While the SDK itself is very flexible, it lacks lots of convenience features that you as a developer may want to have. Instead of working with the lowlevel operations directly, you get the ability to query your data with models and documents. It also provides sensible defaults that allow you to write less verbose code. Of course, all original methods and options can be accessed at any time when needed.
 

@@ -115,6 +115,9 @@ class Client {
 		} elseif($type == 'cluster') {
 			return $this->_connection->getVersion();
 		}
+
+		throw new InvalidArgumentException('Unsupported version type: ' . $type);
+		return false;
 	}
 
 	/**

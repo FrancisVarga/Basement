@@ -115,6 +115,16 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Test the exception when an invalid version type is given.
+	 *
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidVersion() {
+		$client = new Client($this->_testConfig);
+		$client->version('invalid');
+	}
+
+	/**
 	 * Tests the generation of key names with optional prefixes.
 	 */
 	public function testGenerateKey() {

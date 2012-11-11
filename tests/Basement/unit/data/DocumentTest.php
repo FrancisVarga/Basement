@@ -45,6 +45,21 @@ class DocumentTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($key, $document->key());
 	}
 
+	public function testModificationOfAttributes() {
+		$document = new Document();
+		$oldkey = $document->key();
+		$olddoc = $document->doc();
+		$oldcas = $document->cas();
+
+		$document->key('newkey');
+		$document->doc('newdoc');
+		$document->cas('newcas');
+
+		$this->assertEquals('newkey', $document->key());
+		$this->assertEquals('newdoc', $document->doc());
+		$this->assertEquals('newcas', $document->cas());
+	}
+
 	/**
 	 * Tests if the serialization of the payload works properly with both an array and an
 	 * object.

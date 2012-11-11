@@ -26,11 +26,11 @@ Basement is available either standalone or through [Composer](http://getcomposer
 Add this to your `composer.json`:
 
 ```json
-	{
-		"require": {
-			"daschl/Basement": "0.1.0"
-		}
+{
+	"require": {
+		"daschl/Basement": "0.1.0"
 	}
+}
 ```
 
 You can now run `composer.phar` to install the dependency:

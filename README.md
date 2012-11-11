@@ -90,7 +90,45 @@ $client->connection()->increment("mycounter", 1);
 
 Storing Documents
 -----------------
-tba (save with array or Document, show errors and possibilities); also serialization or JSON; also unique ID generation.
+Basement will do its best to transform the data you want to store into JSON. To store whole documents, you can use the `save()` method on the `Basement\Client` object. Currently, there are two ways of passing a document to the `save()` method: either through an array in the format of `array('key' => $stringKey, 'doc' => $anyDoc)` or by using instances of the `Basement\model\Document` object. The latter is recommended since it provides much more flexibility on the document handling and more features will be added to it in the future.
+
+Here is a quick example on how to store the same array as JSON in two different ways:
+
+```php
+use Basement\Client;
+use Basement\model\Document;
+
+$client = new Client();
+
+$key = 'sampledocument';
+$doc = array('store' => 'me', 'please');
+
+// Through an array
+$arrayDoc = array(compact('key', 'doc'));
+$client->save($arrayDoc);
+
+// Through the Document object
+$objectDoc = new Document(compact('key', 'doc'));
+$client->save($objectDoc);
+```
+
+In this simple example its not obvious why the `Basement\model\Document` is preferred, but (as shown later) it provides much more convenience features like automatic key generation for free.
+
+The `save()` method has a bunch of options that you can set, with sensible defaults already set:
+
+```php
+$defaults = array(
+	'override' => true,
+	'replace' => false,
+	'serialize' => false,
+	'expiration' => 0,
+	'cas' => '0'
+);
+```
+
+By overriding them, you can control the behavior how the document is stored and which underlying operations are used. For example, if you set `override` to `false`, it will use the `add` operation instead of the `set` operation and will return false if the document already exists. You can also set `serialize` to `true` if you want PHP object serialization instead of JSON documents, but keep in mind that you are not able to use the full power of views on these documents then. Also, you have to take extra care when fetching those documents out of Couchbase because a `json_decode` would fail of course.
+
+If either the `Document` or the `array()` are somehow invalid or not well-formatted, a `InvalidArgumentException`is raised with a proper error message.
 
 Retreiving Documents
 --------------------

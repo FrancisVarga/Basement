@@ -132,7 +132,57 @@ If either the `Document` or the `array()` are somehow invalid or not well-format
 
 Retreiving Documents
 --------------------
-tba (needs to be implemented).
+Documents can either be retreived by key or through a view. Handling is nearly the same from a client perspective, so working with views is discussed later on. This part focuses on the `find()` method and all its variants.
+
+The `find()` method is the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\model\Document`, but you can also use serialization or raw data if you prefer to.
+
+Here is an example which stores a document and then fetches it back out again:
+
+```php
+use Basement\Client;
+use Basement\model\Document;
+
+$client = new Client();
+
+$document = new Document(array(
+	'key' => 'my_blogpost',
+	'doc' => array(
+		'title' => 'This is my first posting',
+		'content' => 'Every blog has a first post, so this is mine...'
+	)
+));
+
+$client->save($document);
+
+$fetchedDocument = $client->find('key', array('key' => $document->key()));
+
+// Prints "my_blogpost"
+echo $fetchedDocument->key();
+
+// Contains the stored array
+echo $fetchedDocument->doc();
+
+// Holds the associated CAS value
+echo $fetchedDocument->cas();
+```
+
+If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'serialize' => true` so that it will use `unserialize()` instead of `json_decode()`.
+
+If you don't like the verbose syntax of the find method, you can also use the `findByKey()` wrapper method which accepts the key and an array of options:
+
+```php
+// Those two statemens are equal:
+$client->find('key', array('key' => $key));
+$client->findByKey($key);
+
+// You can still pass options like this:
+$client->find('key', array('key' => $key, 'serialize' => true));
+$client->findByKey($key, array('serialize' => true));
+```
+
+The Basement\model\Document object in detail
+--------------------------------------------
+
 
 Working with Views
 ------------------

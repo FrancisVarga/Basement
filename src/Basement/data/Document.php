@@ -26,6 +26,11 @@ class Document {
 	protected $_doc = array();
 
 	/**
+	 * Contains the CAS value for the document if there is one.
+	 */
+	protected $_cas = null;
+
+	/**
 	 * Create a new document.
 	 */
 	public function __construct($options = array()) {
@@ -47,7 +52,7 @@ class Document {
 	public function key($key = null) {
 		if($key) {
 			$this->_key = $key;
-			return true;
+			return $this;
 		}
 
 		if($this->_key == null) {
@@ -63,10 +68,22 @@ class Document {
 	public function doc($doc = null) {
 		if($doc) {
 			$this->_doc = $doc;
-			return true;
+			return $this;
 		}
 
 		return $this->_doc;
+	}
+
+	/**
+	 * Gets or sets the CAS value.
+	 */
+	public function cas($cas = null) {
+		if($cas) {
+			$this->_cas = $cas;
+			return $this;
+		}
+
+		return $this->_cas;
 	}
 
 	/**

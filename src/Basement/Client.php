@@ -12,6 +12,8 @@ use \Couchbase;
 use \RuntimeException;
 use \InvalidArgumentException;
 
+use Basement\data\Document;
+
 /**
  * The `Client`class is your main entry point when working with your Couchbase cluster.
  *
@@ -205,6 +207,97 @@ class Client {
 
 		return $result ?: false;
 	}
+
+	/**
+	 * Find documents either through a view or by key.
+	 *
+	 * The type can either be 'key' or 'view'. Depending on the type, the function
+	 * expects different kind of options. If this flexibility is to complex for your
+	 * use case, you can use the findByKey() and findByView wrapper methods that
+	 * handle this for you.
+	 */
+	public function find($type = 'key', $options = array()) {
+		$defaults = array(
+			'json' => true,
+			'serialize' => false,
+			'raw' => false
+		);
+		$params = $options + $defaults;
+
+		switch($type) {
+			case 'key':
+				$result = $this->_findKey($params);
+				break;
+			case 'view':
+				$result = $this->_findView($params);
+				break;
+			default:
+				throw new InvalidArgumentException('Unsupported find type');
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Helper method for the `find` method to find by key.
+	 */
+	protected function _findKey($options = array()) {
+		$defaults = array(
+			'callback' => null
+		);
+		$params = $options + $defaults;
+
+		if(!isset($params['key'])) {
+			throw new InvalidArgumentException("No key given");
+		} elseif(!is_string($params['key']) && !is_array($params['key'])) {
+			$message = "The given key must be a string or an array";
+			throw new InvalidArgumentException($message);
+		}
+
+		extract($params);
+		$doc = $this->_connection->get($key, $callback, $cas);
+
+		if(!$doc) {
+			return false;
+		} elseif($params['raw'] == true) {
+			return $doc;
+		}
+
+		if($params['serialize'] == true) {
+			$doc = unserialize($doc);
+		} elseif($params['json'] == true) {
+			$doc = json_decode($doc, true);
+		}
+
+		$document = new Document(compact('key', 'doc'));
+		$document->cas($cas);
+
+		return $document;
+	}
+
+	/**
+	 * Helper method for the `find` method to find by view.
+	 */
+	protected function _findView($options = array()) {
+
+	}
+
+	/**
+	 * This method allows for easier quering by the key.
+	 */
+	public function findByKey($key, $options = array()) {
+		$options = $options + array('key' => $key);
+		return $this->find('key', $options);
+	}
+
+	/**
+	 * This method allows for easier quering through a view.
+	 */
+	public function findByView($design, $view, $query = null) {
+		$options = compact('design', 'view', 'query');
+		return $this->find('view', $options);
+	}
+
 
 	/**
 	 * Generate a unique key with an optional prefix.

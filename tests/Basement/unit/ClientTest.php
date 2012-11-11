@@ -12,6 +12,11 @@ use Basement\data\Document;
 class ClientTest extends PHPUnit_Framework_TestCase {
 
 	/**
+	 * A working instance of the client to test against.
+	 */
+	protected $_client = null;
+
+	/**
 	 * Use this to override the default config settings.
 	 */
 	protected $_testConfig = array(
@@ -19,13 +24,18 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	);
 
 	/**
+	 * Instantiate a Client ready to use for the tests.
+	 */
+	public function setUp() {
+		$this->_client = new Client($this->_testConfig);
+	}
+
+	/**
 	 * Delete the given keys to leave the bucket in a clean state.
 	 */
 	protected function _deleteKeys($keys = array()) {
-		$client = new Client($this->_testConfig);
-
 		foreach($keys as $key) {
-			$client->connection()->delete($key);
+			$this->_client->connection()->delete($key);
 		}
 	}
 
@@ -101,12 +111,11 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testVersion() {
 		$versionRegex = '/(\d)+\.(\d)+.(\d)+(-(\w)+)*/';
-		$client = new Client($this->_testConfig);
 
-		$this->assertRegexp($versionRegex, $client->version());
-		$this->assertRegexp($versionRegex, $client->version('client'));
+		$this->assertRegexp($versionRegex, $this->_client->version());
+		$this->assertRegexp($versionRegex, $this->_client->version('client'));
 
-		$result = $client->version('cluster');
+		$result = $this->_client->version('cluster');
 		$this->assertGreaterThanOrEqual(1, count($result));
 		foreach($result as $addr => $version) {
 			$this->assertTrue((is_string($addr) && !empty($addr)));
@@ -120,8 +129,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testInvalidVersion() {
-		$client = new Client($this->_testConfig);
-		$client->version('invalid');
+		$this->_client->version('invalid');
 	}
 
 	/**
@@ -141,15 +149,14 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * as the document to store.
 	 */
 	public function testSaveWithDefaultSettingsAndArray() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'testdocument-1';
 		$doc = array('foobar');
-		$result = $client->save(compact('key', 'doc'));
+
+		$result = $this->_client->save(compact('key', 'doc'));
 		$this->assertTrue(is_string($result));
 		$this->assertNotEmpty($result);
 
-		$check = $client->connection()->get($key);
+		$check = $this->_client->connection()->get($key);
 		$this->assertEquals($doc, json_decode($check));
 
 		$this->_deleteKeys(array($key));
@@ -161,9 +168,8 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testSaveWithInvalidArray() {
-		$client = new Client($this->_testConfig);
 		$document = array('just' => 'some', 'data');
-		$result = $client->save($document);	
+		$result = $this->_client->save($document);	
 	}
 
 	/**
@@ -172,24 +178,22 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testSaveWithInvalidString() {
-		$client = new Client($this->_testConfig);
-		$result = $client->save("storeme");	
+		$result = $this->_client->save("storeme");	
 	}
 
 	/**
 	 * Test the correct saving of a Basement Document.
 	 */
 	public function testSaveWithDefaultSettingsAndDocument() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'testdocument-1';
 		$doc = array('foobar');
+
 		$document = new Document(compact('key', 'doc'));
-		$result = $client->save($document);
+		$result = $this->_client->save($document);
 		$this->assertTrue(is_string($result));
 		$this->assertNotEmpty($result);
 
-		$check = $client->connection()->get($key);
+		$check = $this->_client->connection()->get($key);
 		$this->assertEquals($doc, json_decode($check));
 
 		$this->_deleteKeys(array($key));
@@ -213,17 +217,16 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the find method with the key option.
 	 */
 	public function testFindWithKey() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'mykey';
 		$value = json_encode('foo');
-		$result = $client->find('key', compact('key'));
+
+		$result = $this->_client->find('key', compact('key'));
 		$this->assertFalse($result);
 
-		$result = $client->connection()->set($key, $value);
+		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $client->find('key', compact('key'));
+		$result = $this->_client->find('key', compact('key'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(json_decode($value), $result->doc());
@@ -236,18 +239,17 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the key find with returning raw data.
 	 */
 	public function testFindWithKeyRaw() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'mykey';
 		$value = json_encode('foo');
 		$raw = true;
-		$result = $client->find('key', compact('key', 'raw'));
+
+		$result = $this->_client->find('key', compact('key', 'raw'));
 		$this->assertFalse($result);
 
-		$result = $client->connection()->set($key, $value);
+		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $client->find('key', compact('key', 'raw'));
+		$result = $this->_client->find('key', compact('key', 'raw'));
 		$this->assertTrue(is_string($result));
 		$this->assertEquals($value, $result);
 
@@ -258,18 +260,17 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the key find with returning serialized data.
 	 */
 	public function testFindWithKeySerialized() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'mykey';
 		$value = serialize('foo');
 		$serialize = true;
-		$result = $client->find('key', compact('key', 'serialize'));
+
+		$result = $this->_client->find('key', compact('key', 'serialize'));
 		$this->assertFalse($result);
 
-		$result = $client->connection()->set($key, $value);
+		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $client->find('key', compact('key', 'serialize'));
+		$result = $this->_client->find('key', compact('key', 'serialize'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(unserialize($value), $result->doc());
@@ -303,17 +304,16 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the wrapper findByKey() method.
 	 */
 	public function testFindByKey() {
-		$client = new Client($this->_testConfig);
-
 		$key = 'mykey';
 		$value = json_encode('foo');
-		$result = $client->findByKey($key);
+
+		$result = $this->_client->findByKey($key);
 		$this->assertFalse($result);
 
-		$result = $client->connection()->set($key, $value);
+		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $client->findByKey($key);
+		$result = $this->_client->findByKey($key);
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(json_decode($value), $result->doc());

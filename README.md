@@ -49,7 +49,44 @@ For more information regarding Composer, please consult their [documentation](ht
 
 Connecting to your Cluster
 --------------------------
-tba (connection, default settings, connected(), connect() and connection(); exceptions).
+The Connection and the lower level abstractions are handled through the `Basement\Client` class. The `Client` object therefore is the main entry point when talking to your Couchbase cluster.
+
+The easiest way to open a connection is to use the default settings:
+
+```php
+use Basement\Client;
+$client = new Client();
+```
+
+If you don't provide any further parameters, it will try to connect to `127.0.0.1` and will use the `default` bucket. You can use this settings if you're developing locally or just starting out with Couchbase. You can also pass in an array of options, which can override the default settings. Here is the array of default settings that you can override as needed:
+
+```php
+$defaults = array(
+	'host' => '127.0.0.1',
+	'bucket' => 'default',
+	'password' => '',
+	'user' => null,
+	'persist' => false,
+	'connect' => true
+);
+```
+
+Note that for host, you can also pass in an array of hosts to connect to or a `;`-delimited string. For example, if you want to connect to the `beer-sample` bucket on `192.168.1.100` you can use the following code:
+
+```php
+use Basement\Client;
+$client = new Client(array('host' => '192.168.1.100', 'bucket' => 'beer-sample'));
+```
+
+You can then check with `$client->connected()` if the connection was successful. If the client could not connect to the cluster, it will raise a `RuntimeException` with the corresponding error message from the SDK.
+
+You can also get access to the underlying SDK client object through the `connection()` method after the connection has been established. You can use it to issue every command you like against the SDK.
+
+```php
+use Basement\Client;
+$client = new Client();
+$client->connection()->increment("mycounter", 1);
+```
 
 Storing Documents
 -----------------

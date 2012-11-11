@@ -43,7 +43,7 @@ If you want to use the Composer autoloader in your code, add this line somewhere
 
 ```php
 require 'vendor/autoload.php';
-``
+```
 
 For more information regarding Composer, please consult their [documentation](http://getcomposer.org/doc/).
 

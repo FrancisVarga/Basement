@@ -134,7 +134,7 @@ Retreiving Documents
 --------------------
 Documents can either be retreived by key or through a view. Handling is nearly the same from a client perspective, so working with views is discussed later on. This part focuses on the `find()` method and all its variants.
 
-The `find()` method is the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\model\Document`, but you can also use serialization or raw data if you prefer to.
+The `findByKey()` and `findByView()`methods are the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\model\Document`, but you can also use serialization or raw data if you prefer to.
 
 Here is an example which stores a document and then fetches it back out again:
 
@@ -154,7 +154,7 @@ $document = new Document(array(
 
 $client->save($document);
 
-$fetchedDocument = $client->find('key', array('key' => $document->key()));
+$fetchedDocument = $client->findByKey($document->key());
 
 // Prints "my_blogpost"
 echo $fetchedDocument->key();
@@ -168,7 +168,7 @@ echo $fetchedDocument->cas();
 
 If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'serialize' => true` so that it will use `unserialize()` instead of `json_decode()`.
 
-If you don't like the verbose syntax of the find method, you can also use the `findByKey()` wrapper method which accepts the key and an array of options:
+Both the `findByKey()` and `findByView()` methods are convenience wrappers around the `find()` method, which you can call directly as well (for example if you want to provide your own abstractions on top of it).
 
 ```php
 // Those two statemens are equal:

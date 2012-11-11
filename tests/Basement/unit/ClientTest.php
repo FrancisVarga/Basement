@@ -322,6 +322,47 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$this->_deleteKeys(array($key));
 	}
 
+	/**
+	 * Tests basic querying of a view.
+	 */
+	public function testFindWithView() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
+
+		$design = 'name';
+		$view = 'name';
+		$this->_client->find('view', compact('design', 'view'));
+	}
+
+	/**
+	 * Tests passing in the view query params as an array.
+	 */
+	public function testFindWithViewQueryArray() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
+	}
+
+	/**
+	 * Tests passing in the view query params as a Query object.
+	 */
+	public function testFindWithViewQueryObject() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
+	}
+
+	/**
+	 * Tests accessing the view method with empty params.
+	 */
+	public function testFindWithEmptyView() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
+	}
+
+	/**
+	 * Tests accessing a non-existent view.
+	 */
+	public function testFindWithInvalidView() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
+	}
+
+
+
 }
 
 

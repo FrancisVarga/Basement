@@ -282,7 +282,18 @@ class Client {
 	 * Helper method for the `find` method to find by view.
 	 */
 	protected function _findView($options = array()) {
+		$defaults = array('query' => array());
+		$params = $options + $defaults;
 
+		if(empty($params['design']) || empty($params['view'])) {
+			$message = "Please provide both a design document and a view name";
+			throw new InvalidArgumentException($message);
+		}
+
+		extract($params);
+		$result = $this->_connection->view($design, $view, $query);
+
+		return $result;
 	}
 
 	/**

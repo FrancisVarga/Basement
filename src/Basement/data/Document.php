@@ -23,7 +23,7 @@ class Document {
 	/**
 	 * The "payload" to store in the cluster.
 	 */
-	protected $_doc = array();
+	protected $_doc = null;
 
 	/**
 	 * Contains the CAS value for the document if there is one.

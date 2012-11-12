@@ -11,6 +11,7 @@ namespace Basement;
 use \Couchbase;
 use \RuntimeException;
 use \InvalidArgumentException;
+use \SplFixedArray;
 
 use Basement\data\Document;
 
@@ -291,9 +292,30 @@ class Client {
 		}
 
 		extract($params);
+		if($query instanceof \Basement\view\Query) {
+			$query = $query->params();
+		} elseif(!is_array($query)) {
+			throw new InvalidArgumentException("Unknown query value given");
+		}
+
 		$result = $this->_connection->view($design, $view, $query);
 
-		return $result;
+		$collection = new SplFixedArray(count($result['rows']));
+		if($collection->getSize() == 0) {
+			return $collection;
+		}
+
+		foreach($result['rows'] as $num => $row) {
+			$key = $row['key'];
+			$content = array('key' => $row['key']);
+			if(isset($row['doc']['json'])) {
+				$content['doc'] = $row['doc']['json'];
+			} 
+
+			$collection[$num] = new Document($content);
+		}
+
+		return $collection;
 	}
 
 	/**

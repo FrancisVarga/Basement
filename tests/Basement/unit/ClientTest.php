@@ -326,17 +326,47 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests basic querying of a view.
 	 */
 	public function testFindWithView() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$docAmount = 5;
+		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
 
-		$design = 'name';
-		$view = 'name';
-		$this->_client->find('view', compact('design', 'view'));
+		sleep(2);
+
+		$design = 'posts';
+		$view = 'all';
+		$query = array('stale' => 'false');
+		$result = $this->_client->find('view', compact('design', 'view', 'query'));
+		$this->assertEquals($docAmount, count($result));
+
+		foreach($result as $document) {
+			$this->assertRegexp('/post:\d/', $document->key());
+			$this->assertNull($document->doc());
+			$this->assertNull($document->cas());
+		}
+
+		$this->_deleteKeys($keysToDelete);
 	}
 
 	/**
-	 * Tests passing in the view query params as an array.
+	 * Helper method to create documents for the testFindWithView.
 	 */
-	public function testFindWithViewQueryArray() {
+	protected function _populateSamplePostDocuments($docAmount) {
+		$keysToDelete = array();
+		for($i = 1; $i <= $docAmount; $i++) {
+			$key = "post:$i";
+			$encoded = json_encode(array(
+				'type' => 'post',
+				'title' => 'This is post number: ' . $i
+			));
+			$this->_client->connection()->set($key, $encoded);
+			$keysToDelete[] = $key;
+		}
+		return $keysToDelete;		
+	}
+
+	/**
+	 * Tests passing in the view query and include docs.
+	 */
+	public function testFindWithViewAndIncludeDocs() {
 		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 
@@ -348,10 +378,22 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests the behavior with a view reduce function.
+	 */
+	public function testFindWithViewAndReduce() {
+
+	}
+
+	/**
 	 * Tests accessing the view method with empty params.
+	 *
+	 * @expectedException InvalidArgumentException
 	 */
 	public function testFindWithEmptyView() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->_client->find('view', array(
+			'design' => '',
+			'view' => ''
+		));
 	}
 
 	/**

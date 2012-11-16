@@ -204,14 +204,36 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the save command with the add operation.
 	 */
 	public function testSaveWithNoOverride() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$key = 'testdocument-1';
+		$doc = array('foobar');
+
+		$stored = 'something';
+		$this->_client->connection()->set($key, $stored);
+
+		$document = new Document(compact('key', 'doc'));
+		$result = $this->_client->save($document, array('override' => false));
+
+		$this->assertEquals($stored, $this->_client->connection()->get($key));
+		$this->assertFalse($result);
+
+		$this->_deleteKeys(array($key));
 	}
 
 	/**
 	 * Tests the save command with the replace operation.
 	 */
 	public function testSaveWithReplace() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$key = 'testdocument-1';
+		$doc = array('foobar');
+
+		$this->_client->connection()->delete($key);
+
+		$document = new Document(compact('key', 'doc'));
+		$result = $this->_client->save($document, array('replace' => true));
+		$this->assertNull($this->_client->connection()->get($key));
+		$this->assertFalse($result);
+
+		$this->_deleteKeys(array($key));
 	}
 
 	/**
@@ -383,7 +405,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the behavior with a view reduce function.
 	 */
 	public function testFindWithViewAndReduce() {
-
+		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 
 	/**
@@ -427,6 +449,15 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		);
 		$this->_client->transcoder('custom', $custom);
 		$this->assertTrue(is_array($this->_client->transcoder('custom')));
+	}
+
+	/**
+	 * Verifies that an invalid transcoder throws an exception
+	 *
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testInvalidTranscoder() {
+		$this->_client->transcoder('invalid', array('encoder' => array()));
 	}
 
 

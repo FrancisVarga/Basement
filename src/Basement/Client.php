@@ -117,7 +117,6 @@ class Client {
 			throw new InvalidArgumentException($msg);
 		}
 
-		echo "IN";
 		$this->_transcoders[$name] = $transcoder;
 	}
 

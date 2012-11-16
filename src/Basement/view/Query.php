@@ -57,9 +57,9 @@ class Query {
 	}
 
 	/**
-	 * Use the reduction function.
+	 * Use the reduction function or return the stored value.
 	 */
-	public function reduce($reduce) {
+	public function reduce($reduce = null) {
 		$this->_params['reduce'] = $reduce == true ? 'true' : 'false';
 		return $this;
 	}

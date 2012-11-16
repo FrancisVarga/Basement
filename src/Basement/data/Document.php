@@ -31,6 +31,11 @@ class Document {
 	protected $_cas = null;
 
 	/**
+	 * The value when populated from a view result.
+	 */
+	protected $_value = null;
+
+	/**
 	 * Create a new document.
 	 */
 	public function __construct($options = array()) {
@@ -40,6 +45,14 @@ class Document {
 
 		if(isset($options['doc'])) {
 			$this->_doc = $options['doc'];
+		}
+
+		if(isset($options['cas'])) {
+			$this->_cas = $options['cas'];
+		}
+
+		if(isset($options['value'])) {
+			$this->_value = $options['value'];
 		}
 	}
 
@@ -84,6 +97,18 @@ class Document {
 		}
 
 		return $this->_cas;
+	}
+
+	/**
+	 * Gets or sets the view result value
+	 */
+	public function value($value = null) {
+		if($value) {
+			$this->_value = $value;
+			return $this;
+		}
+
+		return $this->_value;
 	}
 
 	/**

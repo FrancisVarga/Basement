@@ -9,6 +9,7 @@
 use Basement\Client;
 use Basement\data\Document;
 use Basement\view\Query;
+use Basement\view\ViewResult;
 
 class ClientTest extends PHPUnit_Framework_TestCase {
 
@@ -366,20 +367,30 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 
 		$design = 'posts';
 		$view = 'all';
-		$query = array('stale' => 'false');
+		$query = array('stale' => 'false', 'reduce' => 'false');
 		$result = $this->_client->find('view', compact('design', 'view', 'query'));
-		$this->assertEquals($docAmount, count($result));
+		$this->assertEquals($docAmount, count($result->get()));
+		$this->assertTrue($result instanceof \Basement\view\ViewResult);
+		$this->assertFalse($result->isReduced());
 
-		foreach($result as $document) {
+		foreach($result->get() as $document) {
 			$this->assertRegexp('/post:\d/', $document->key());
 			$this->assertNull($document->doc());
 			$this->assertNull($document->cas());
 		}
 
 		$query = new Query();
-		$query->stale(false);
+		$query->stale(false)->reduce(false);
 		$result = $this->_client->find('view', compact('design', 'view', 'query'));
-		$this->assertEquals($docAmount, count($result));
+		$this->assertEquals($docAmount, count($result->get()));
+		$this->assertTrue($result instanceof \Basement\view\ViewResult);
+		$this->assertFalse($result->isReduced());
+
+		foreach($result->get() as $document) {
+			$this->assertRegexp('/post:\d/', $document->key());
+			$this->assertNull($document->doc());
+			$this->assertNull($document->cas());
+		}
 
 		$this->_deleteKeys($keysToDelete);
 	}
@@ -405,21 +416,59 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests passing in the view query and include docs.
 	 */
 	public function testFindWithViewAndIncludeDocs() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
-	}
+		$docAmount = 5;
+		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
 
-	/**
-	 * Tests passing in the view query params as a Query object.
-	 */
-	public function testFindWithViewQueryObject() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		sleep(2);
+
+		$design = 'posts';
+		$view = 'all';
+		$query = array('stale' => 'false', 'reduce' => 'false', 'include_docs' => 'true');
+		$result = $this->_client->find('view', compact('design', 'view', 'query'));
+		$this->assertEquals($docAmount, count($result->get()));
+		$this->assertTrue($result instanceof \Basement\view\ViewResult);
+		$this->assertFalse($result->isReduced());
+
+		foreach($result->get() as $document) {
+			$this->assertRegexp('/post:\d/', $document->key());
+			$this->assertNotEmpty($document->doc());
+			$this->assertTrue(is_array($document->doc()));
+			$this->assertNull($document->cas());
+		}
+
+		$query = new Query();
+		$query->stale(false)->reduce(false)->includeDocs(true);
+		$result = $this->_client->find('view', compact('design', 'view', 'query'));
+		$this->assertEquals($docAmount, count($result->get()));
+		$this->assertTrue($result instanceof \Basement\view\ViewResult);
+		$this->assertFalse($result->isReduced());
+
+		foreach($result->get() as $document) {
+			$this->assertRegexp('/post:\d/', $document->key());
+			$this->assertNotEmpty($document->doc());
+			$this->assertTrue(is_array($document->doc()));
+			$this->assertNull($document->cas());
+		}
+
+		$this->_deleteKeys($keysToDelete);
 	}
 
 	/**
 	 * Tests the behavior with a view reduce function.
 	 */
 	public function testFindWithViewAndReduce() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$docAmount = 5;
+		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
+
+		sleep(2);
+
+		$design = 'posts';
+		$view = 'all';
+		$query = array('stale' => 'false', 'reduce' => 'true');
+		$result = $this->_client->find('view', compact('design', 'view', 'query'));
+		$this->assertTrue($result->isReduced());
+		$documents = $result->get();
+		$this->assertEquals($docAmount, $documents[0]->value());
 	}
 
 	/**
@@ -435,10 +484,27 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests accessing a non-existent design doc.
+	 *
+	 * @expectedException \Basement\view\InvalidViewException
+	 */
+	public function testFindWithInvalidDesignDoc() {
+		$this->_client->find('view', array(
+			'design' => 'post',
+			'view' => 'foobar'
+		));
+	}
+
+	/**
 	 * Tests accessing a non-existent view.
+	 *
+	 * @expectedException \Basement\view\InvalidViewException
 	 */
 	public function testFindWithInvalidView() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$this->_client->find('view', array(
+			'design' => 'posts',
+			'view' => 'foobar'
+		));
 	}
 
 	/**
@@ -474,8 +540,6 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$this->_client->transcoder('invalid', array('encoder' => array()));
 	}
 
-
 }
-
 
 ?>

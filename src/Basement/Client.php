@@ -14,6 +14,8 @@ use \InvalidArgumentException;
 use \SplFixedArray;
 
 use Basement\data\Document;
+use Basement\view\ViewResult;
+use Basement\view\InvalidViewException;
 
 /**
  * The `Client`class is your main entry point when working with your Couchbase cluster.
@@ -337,24 +339,39 @@ class Client {
 			throw new InvalidArgumentException("Unknown query value given");
 		}
 
+		set_error_handler(function($no, $str, $file, $line, array $context) {
+			if(preg_match('/Error opening view ([^,]+)/', $str, $match)) {
+				throw new InvalidViewException("View " . $match[1] . " not found");
+			} elseif(preg_match('/Design document _design\/([^\s]+) not found/', $str, $match)) {
+				throw new InvalidViewException("Design \"" . $match[1] . "\" not found");
+			} else {
+				throw new RuntimeException($str);
+			}
+		});
+
 		$result = $this->_connection->view($design, $view, $query);
 
-		$collection = new SplFixedArray(count($result['rows']));
-		if($collection->getSize() == 0) {
-			return $collection;
+		restore_error_handler();
+
+		$reduce = $query['reduce'] == 'true';
+
+		$documents = new SplFixedArray(count($result['rows']));
+		if($documents->getSize() == 0) {
+			return $documents;
 		}
 
 		foreach($result['rows'] as $num => $row) {
-			$key = $row['key'];
-			$content = array('key' => $row['key']);
+			$doc = array('value' => $row['value']);
+			if(!$reduce) {
+				$doc['key'] = $row['id'];
+			}
 			if(isset($row['doc']['json'])) {
-				$content['doc'] = $row['doc']['json'];
-			} 
-
-			$collection[$num] = new Document($content);
+				$doc['doc'] = $row['doc']['json'];
+			}
+			$documents[$num] = new Document($doc);
 		}
 
-		return $collection;
+		return new ViewResult($reduce, $documents);
 	}
 
 	/**

@@ -21,11 +21,7 @@ class Query {
 	/** 
 	 * Contains the query params.
 	 */
-	protected $_params = array(
-		'stale' => 'false',
-		'reduce' => 'false',
-		'include_docs' => 'false'
-	);
+	protected $_params = array();
 
 	/**
 	 * Returns the params as an array.
@@ -56,7 +52,7 @@ class Query {
 	 * Set the desceinding param.
 	 */
 	public function descending($descending) {
-		$this->_params['descending'] = $descending == true ? 'true' : 'false';
+		$this->_params['descending'] = $descending ? true : false;
 		return $this;
 	}
 
@@ -102,72 +98,122 @@ class Query {
 
 	/**
 	 * Set the key query param.
+	 *
+	 * Key must be specified as a JSON value.
 	 */
 	public function key($key) {
-
+		$this->_params['key'] = json_encode($key);
+		return $this;
 	}
 
 	/**
 	 * Set the keys query param.
+	 *
+	 * Key must be specified as a JSON value.
 	 */
 	public function keys($keys) {
-
+		$this->_params['keys'] = json_encode($keys);
+		return $this;
 	}
 
 	/**
+	 * Return records with a value equal to or greater than the specified key.
 	 *
+	 * Key must be specified as a JSON value.
 	 */
 	public function startKey($startKey) {
-
+		$this->_params['startkey'] = json_encode($startKey);
+		return $this;
 	}
 
 	/**
 	 * Stop returning records when the specified key is reached.
+	 *
+	 * Key must be specified as a JSON value.
 	 */
 	public function endKey($endKey) {
-
+		$this->_params['endkey'] = json_encode($endKey);
+		return $this;
 	}
 
 	/**
 	 * Return records starting with the specified document ID.
 	 */
 	public function startKeyDocId($docId) {
+		if(!is_string($docId)) {
+			throw new InvalidArgumentException("startKeyDocID must be a string");
+		}
 
+		$this->_params['startkey_docid'] = $docId;
+		return $this;
 	}
 
 	/**
 	 *
 	 */
 	public function endKeyDocId($docId) {
+		if(!is_string($docId)) {
+			throw new InvalidArgumentException("endKeyDocID must be a string");
+		}
 
+		$this->_params['endkey_docid'] = $docId;
+		return $this;
 	}
 
 	/**
-	 *
+	 * Group the results using the reduce function to a group or single row.
 	 */
 	public function group($group) {
+		if($group == true || $group == 'true') {
+			$this->_params['group'] = true;
+		} else {
+			$this->_params['group'] = false;
+		}
 
+		return $this;
 	}
 
 	/**
+	 * Specify the group level to be used.
 	 *
+	 * Must be a positive integer (or 0).
 	 */
 	public function groupLevel($groupLevel) {
-
+		if(!is_integer($groupLevel) || $groupLevel < 0) {
+			throw new InvalidArgumentException("groupLevel must be a positive integer");
+		}
+		$this->_params['group_level'] = $groupLevel;
+		return $this;
 	}
 
 	/**
-	 *
+	 * Specifies whether the specified end key should be included in the result.
 	 */
 	public function inclusiveEnd($inclusiveEnd) {
+		if($inclusiveEnd == true || $inclusiveEnd == 'true') {
+			$this->_params['inclusiveEnd'] = true;
+		} else {
+			$this->_params['inclusiveEnd'] = false;
+		}
 
+		return $this;
 	}
 
 	/**
 	 * Sets the response in the event of an error.
+	 *
+	 * Must either be "continue" or "stop".
 	 */
 	public function onError($onError) {
+		if($onError == 'continue') {
+			$this->_param['on_error'] = 'continue';
+		} elseif($onError == 'stop') {
+			$this->_param['on_error'] = 'stop';
+		} else {
+			throw new InvalidArgumentException("onError is either continue or stop.");
+		}
 
+		return $this;
 	}
 
 }

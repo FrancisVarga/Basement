@@ -8,6 +8,7 @@
 
 use Basement\Client;
 use Basement\data\Document;
+use Basement\view\Query;
 
 class ClientTest extends PHPUnit_Framework_TestCase {
 
@@ -347,9 +348,17 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests basic querying of a view.
+	 *
+	 * Design: "posts", View: "all"
+	 *
+	 * function (doc, meta) {
+	 *   if(doc.type == "post") {
+	 *     emit(meta.id, null);
+	 *   }
+	 * }
+	 *
 	 */
 	public function testFindWithView() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
 		$docAmount = 5;
 		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
 
@@ -366,6 +375,11 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 			$this->assertNull($document->doc());
 			$this->assertNull($document->cas());
 		}
+
+		$query = new Query();
+		$query->stale(false);
+		$result = $this->_client->find('view', compact('design', 'view', 'query'));
+		$this->assertEquals($docAmount, count($result));
 
 		$this->_deleteKeys($keysToDelete);
 	}

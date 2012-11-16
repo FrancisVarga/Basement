@@ -280,7 +280,6 @@ The roadmap is still in flux and certainly subject to change. TL;DR: it will sup
 
 0.1 (Initial Release):
 
-	- View Query support (also with the handy Query class).
 	- Support for transparent multiget operations.
 	- Best-Effort test coverage.
 	- Available on packagist.

@@ -35,6 +35,12 @@ class Client {
 	protected $_connection = null;
 
 	/**
+	 * Contains transcoders which allow the transparent encoding/decoding of values
+	 * to store in Couchbase.
+	 */
+	protected $_transcoders = array();
+
+	/**
 	 * Create and connect to the CouchbaseClient.
 	 *
 	 * If no user is provided (or is null), then it is assumed to be the same
@@ -48,7 +54,8 @@ class Client {
 			'password' => '',
 			'user' => null,
 			'persist' => false,
-			'connect' => true
+			'connect' => true,
+			'transcoder' => 'json'
 		);
 		$this->_config = $options + $defaults;
 		$this->_config['user'] ?: $this->_config['bucket'];
@@ -56,6 +63,33 @@ class Client {
 		if($this->_config['connect'] == true) {
 			$this->connect();
 		}
+
+		$this->_transcoders += array(
+			'json' => array(
+				'encode' => function($input) {
+					if($input instanceof \Basement\data\Document) {
+						return $input->toJson();
+					} else { 
+						return json_encode($input['doc']);
+					}
+				},
+				'decode' => function($input) {
+					return json_decode($input, true);
+				}
+			),
+			'serialize' => array(
+				'encode' => function($input) {
+					if($input instanceof \Basement\data\Document) {
+						return $input->serialize();
+					} else {
+						return serialize($input['doc']);
+					}
+				},
+				'decode' => function($input) {
+					return unserialize($input);
+				}
+			)
+		);
 	}
 
 	/**
@@ -63,6 +97,28 @@ class Client {
 	 */
 	public function config() {
 		return $this->_config;
+	}
+
+	/**
+	 * Read or set a transcoder.
+	 */
+	public function transcoder($name = null, $transcoder = array()) {
+		if($name == null) {
+			return $this->_transcoders;
+		} elseif(empty($transcoder) && isset($this->_transcoders[$name])) {
+			return $this->_transcoders[$name];
+		} elseif(empty($transcoder)) {
+			return false;
+		}
+
+		if(!isset($transcoder['encode']) || !isset($transcoder['decode']) ||
+		   !is_callable($transcoder['encode']) || !is_callable($transcoder['decode'])) {
+			$msg = "A transcoder must provide 'encode' and 'decode' callable functions";
+			throw new InvalidArgumentException($msg);
+		}
+
+		echo "IN";
+		$this->_transcoders[$name] = $transcoder;
 	}
 
 	/**
@@ -156,7 +212,8 @@ class Client {
 			'replace' => false,
 			'serialize' => false,
 			'expiration' => 0,
-			'cas' => '0'
+			'cas' => '0',
+			'transcoder' => $this->_config['transcoder']
 		);
 		$params = $options + $defaults;
 
@@ -170,30 +227,16 @@ class Client {
 			}
 		};
 
-		$stringify = function($serialize) use ($document) {
-			if(is_array($document) && empty($document['key'])) {
-				throw new InvalidArgumentException("Invalid or no key given.");
-			} elseif(is_array($document) && !isset($document['doc'])) {
-				throw new InvalidArgumentException("No 'doc' given.");
-			}
-
-			if($serialize) {
-				if($document instanceof \Basement\data\Document) {
-					return $document->serialize();
-				} else {
-					return serialize($document['doc']);
-				}
-			} else {
-				if($document instanceof \Basement\data\Document) {
-					return $document->toJson();
-				} else { 
-					return json_encode($document['doc']);
-				}	
-			}
-		};
-
 		$key = $extractKey();
-		$stringified = $stringify($params['serialize'] == true);
+		if(is_array($document) && empty($document['key'])) {
+			throw new InvalidArgumentException("Invalid or no key given.");
+		} elseif(is_array($document) && !isset($document['doc'])) {
+			throw new InvalidArgumentException("No 'doc' given.");
+		}
+
+		$encoder = $this->_transcoders[$params['transcoder']]['encode'];
+		$stringified = $encoder($document);
+		
 
 		if($params['override'] == true && $params['replace'] == false) {
 			$operation = 'set';
@@ -223,7 +266,7 @@ class Client {
 	public function find($type = 'key', $options = array()) {
 		$defaults = array(
 			'json' => true,
-			'serialize' => false,
+			'transcoder' => $this->_config['transcoder'],
 			'raw' => false
 		);
 		$params = $options + $defaults;
@@ -267,11 +310,8 @@ class Client {
 			return $doc;
 		}
 
-		if($params['serialize'] == true) {
-			$doc = unserialize($doc);
-		} elseif($params['json'] == true) {
-			$doc = json_decode($doc, true);
-		}
+		$decoder = $this->_transcoders[$options['transcoder']]['decode'];
+		$doc = $decoder($doc);
 
 		$document = new Document(compact('key', 'doc'));
 		$document->cas($cas);

@@ -69,7 +69,8 @@ $defaults = array(
 	'password' => '',
 	'user' => null,
 	'persist' => false,
-	'connect' => true
+	'connect' => true,
+	'transcoder' => 'json'
 );
 ```
 
@@ -89,6 +90,8 @@ use Basement\Client;
 $client = new Client();
 $client->connection()->increment("mycounter", 1);
 ```
+
+The `transcoder` setting defines in which format the data will be encoded/decoded when written/read to/from the cluster. The default setting is `json`, but you can either provide `serialize` or your own ones (see the advanced topics). You can also override this setting on a per-query-basis.
 
 Storing Documents
 -----------------
@@ -122,13 +125,13 @@ The `save()` method has a bunch of options that you can set, with sensible defau
 $defaults = array(
 	'override' => true,
 	'replace' => false,
-	'serialize' => false,
+	'transcoder' => 'json',
 	'expiration' => 0,
 	'cas' => '0'
 );
 ```
 
-By overriding them, you can control the behavior how the document is stored and which underlying operations are used. For example, if you set `override` to `false`, it will use the `add` operation instead of the `set` operation and will return false if the document already exists. You can also set `serialize` to `true` if you want PHP object serialization instead of JSON documents, but keep in mind that you are not able to use the full power of views on these documents then. Also, you have to take extra care when fetching those documents out of Couchbase because a `json_decode` would fail of course.
+By overriding them, you can control the behavior how the document is stored and which underlying operations are used. For example, if you set `override` to `false`, it will use the `add` operation instead of the `set` operation and will return false if the document already exists. You can also set `transcoder` to `serialize` if you want PHP object serialization instead of JSON documents, but keep in mind that you are not able to use the full power of views on these documents then. Also, you have to take extra care when fetching those documents out of Couchbase because a `json_decode` would fail of course.
 
 If either the `Document` or the `array()` are somehow invalid or not well-formatted, a `InvalidArgumentException`is raised with a proper error message.
 
@@ -168,7 +171,7 @@ echo $fetchedDocument->doc();
 echo $fetchedDocument->cas();
 ```
 
-If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'serialize' => true` so that it will use `unserialize()` instead of `json_decode()`.
+If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'transcoder' => 'serialize'` so that it will use `unserialize()` instead of `json_decode()`.
 
 Both the `findByKey()` and `findByView()` methods are convenience wrappers around the `find()` method, which you can call directly as well (for example if you want to provide your own abstractions on top of it).
 
@@ -178,8 +181,8 @@ $client->find('key', array('key' => $key));
 $client->findByKey($key);
 
 // You can still pass options like this:
-$client->find('key', array('key' => $key, 'serialize' => true));
-$client->findByKey($key, array('serialize' => true));
+$client->find('key', array('key' => $key, 'transcoder' => 'serialize'));
+$client->findByKey($key, array('transcoder' => 'serialize'));
 ```
 
 Working with Views
@@ -233,7 +236,43 @@ $client->find('view', array('design' => 'myDesign', 'view' => 'myView', 'query' 
 
 Advanced Usage
 --------------
-tba.
+The following topics are not needed for everyday use but can come in handy when you need advanced functionality.
+
+### Providing custom transcoders
+By default, Basement provides transcoders for `json` and `serialize`. If you want, you can easily add your own (or override default ones). A transcoder needs to provide both a `encode` and a `decode` callable, which is called on every document. Note that on `encode`, you may want to check if the given data is an array or an instance of \Basement\data\Document, since this would change the way you interact with the object. See the implementation for `json` or `serialize` for an example. Here is how to provide a custom transcoder (this one just passes the data through, but you can do whatever you like with it in the callbacks):
+
+```php
+$custom = array(
+	// called on save() for example
+	'encode' => function($input) {
+		// your code here.
+		return $input;
+	},
+	// called on find() for example
+	'decode' => function($input) {
+		// your code here
+		return $input;
+	}
+);
+$this->_client->transcoder('custom', $custom);
+```
+
+Here is the default JSON transcoder for reference:
+
+```php
+'json' => array(
+	'encode' => function($input) {
+		if($input instanceof \Basement\data\Document) {
+			return $input->toJson();
+		} else { 
+			return json_encode($input['doc']);
+		}
+	},
+	'decode' => function($input) {
+		return json_decode($input, true);
+	}
+)
+``
 
 Roadmap
 -------
@@ -242,7 +281,6 @@ The roadmap is still in flux and certainly subject to change. TL;DR: it will sup
 0.1 (Initial Release):
 
 	- View Query support (also with the handy Query class).
-	- A flexible transcoding mechanism based on closures and callbacks.
 	- Support for transparent multiget operations.
 	- Best-Effort test coverage.
 	- Available on packagist.

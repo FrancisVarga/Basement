@@ -50,7 +50,8 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 			'bucket' => 'default',
 			'password' => '',
 			'user' => null,
-			'persist' => false
+			'persist' => false,
+			'transcoder' => 'json'
 		);
 
 		$config = $client->config();
@@ -262,15 +263,15 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	public function testFindWithKeySerialized() {
 		$key = 'mykey';
 		$value = serialize('foo');
-		$serialize = true;
+		$transcoder = 'serialize';
 
-		$result = $this->_client->find('key', compact('key', 'serialize'));
+		$result = $this->_client->find('key', compact('key', 'transcoder'));
 		$this->assertFalse($result);
 
 		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $this->_client->find('key', compact('key', 'serialize'));
+		$result = $this->_client->find('key', compact('key', 'transcoder'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(unserialize($value), $result->doc());
@@ -326,6 +327,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests basic querying of a view.
 	 */
 	public function testFindWithView() {
+		$this->markTestIncomplete('This test has not been implemented yet.');
 		$docAmount = 5;
 		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
 
@@ -403,6 +405,29 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$this->markTestIncomplete('This test has not been implemented yet.');
 	}
 
+	/**
+	 * Test of adding a transcoder.
+	 *
+	 * This transcoder does nothing with the input, just passes it through.
+	 */
+	public function testAddingTranscoder() {
+		$defaults = $this->_client->transcoder();
+		$this->assertFalse($this->_client->transcoder('custom'));
+		$this->assertFalse(isset($defaults['custom']));
+		$this->assertTrue(isset($defaults['json']));
+		$this->assertTrue(isset($defaults['serialize']));
+
+		$custom = array(
+			'encode' => function($input) {
+				return $input;
+			},
+			'decode' => function($input) {
+				return $input;
+			}
+		);
+		$this->_client->transcoder('custom', $custom);
+		$this->assertTrue(is_array($this->_client->transcoder('custom')));
+	}
 
 
 }

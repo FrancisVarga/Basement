@@ -375,7 +375,7 @@ class Client {
 
 		restore_error_handler();
 
-		$reduce = $query['reduce'] == 'true';
+		$reduce = isset($query['reduce']) && $query['reduce'] == 'true';
 
 		$documents = new SplFixedArray(count($result['rows']));
 		if($documents->getSize() == 0) {

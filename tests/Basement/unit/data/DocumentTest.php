@@ -45,19 +45,36 @@ class DocumentTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($key, $document->key());
 	}
 
+	public function testCreationWithKeyDocAndValue() {
+		$key = 'mykey';
+		$doc = array('foo' => 'bar');
+		$value = 'something';
+		$document = new Document(compact('key', 'doc', 'value'));
+		
+		$this->assertEquals($doc, $document->doc());
+		$this->assertEquals($key, $document->key());
+		$this->assertEquals($value, $document->value());
+	}
+
+	/**
+	 * Tests the modification of attributes.
+	 */
 	public function testModificationOfAttributes() {
 		$document = new Document();
 		$oldkey = $document->key();
 		$olddoc = $document->doc();
 		$oldcas = $document->cas();
+		$oldval = $document->value();
 
 		$document->key('newkey');
 		$document->doc('newdoc');
 		$document->cas('newcas');
+		$document->value('newval');
 
 		$this->assertEquals('newkey', $document->key());
 		$this->assertEquals('newdoc', $document->doc());
 		$this->assertEquals('newcas', $document->cas());
+		$this->assertEquals('newval', $document->value());
 	}
 
 	/**

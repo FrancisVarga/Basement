@@ -47,10 +47,6 @@ class Document {
 			$this->_doc = $options['doc'];
 		}
 
-		if(isset($options['cas'])) {
-			$this->_cas = $options['cas'];
-		}
-
 		if(isset($options['value'])) {
 			$this->_value = $options['value'];
 		}

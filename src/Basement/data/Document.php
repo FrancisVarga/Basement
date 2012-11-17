@@ -82,6 +82,13 @@ class Document {
 	}
 
 	/**
+	 * Checks if a given key isset on the document.
+	 */
+	public function __isset($key) {
+		return $this->get($key) !== null;
+	}
+
+	/**
 	 * Gets or sets the key of the document.
 	 *
 	 * Note that if no key was set and it is accessed for the first time, 

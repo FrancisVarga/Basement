@@ -116,6 +116,9 @@ class DocumentTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('is_cool', $document->get('beer'));
 		$this->assertEquals(array('not_so' => 'much'), $document->get('wine'));
 		$this->assertNull($document->get('notSet'));
+		$this->assertTrue(isset($document->beer));
+		$this->assertFalse(isset($document->notSet));
+
 		$expected = array(
 			'beer' => 'is_cool',
 			'wine' => array('not_so' => 'much')

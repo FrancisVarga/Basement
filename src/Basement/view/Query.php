@@ -52,7 +52,7 @@ class Query {
 	 * Set the desceinding param.
 	 */
 	public function descending($descending) {
-		$this->_params['descending'] = $descending ? true : false;
+		$this->_params['descending'] = $descending == true ? 'true' : 'false';
 		return $this;
 	}
 

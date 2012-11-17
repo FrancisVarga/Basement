@@ -159,19 +159,38 @@ $document = new Document(array(
 
 $client->save($document);
 
-$fetchedDocument = $client->findByKey($document->key());
+$documents = $client->findByKey($document->key());
 
-// Prints "my_blogpost"
-echo $fetchedDocument->key();
+foreach($documents as $doc) {
+	// Prints "my_blogpost"
+	echo $doc->key();
 
-// Contains the stored array
-echo $fetchedDocument->doc();
+	// Contains the stored array
+	echo $doc->doc();
 
-// Holds the associated CAS value
-echo $fetchedDocument->cas();
+	// Holds the associated CAS value
+	echo $doc->cas();	
+}
 ```
 
 If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'transcoder' => 'serialize'` so that it will use `unserialize()` instead of `json_decode()`.
+
+If you pass in an array of keys, the collection returned contains more than one document. Behind the scenes, the more efficient `getMulti()` method is used instead of the normal `get()` method. On the other hand, if you are sure that you only want one document back you can add the `"first" => true` option. This will return the first document of the collection:
+
+```php
+// Longer version:
+$documents = $client->findByKey("mykey");
+$document = $documents[0];
+
+// Shorter version:
+$document = $client->findByKey("mykey", array('first' => true));
+```
+
+Passing in more than one key is easy:
+
+```php
+$documents = $client->findByKey(array("key1", "key2"));
+```
 
 Both the `findByKey()` and `findByView()` methods are convenience wrappers around the `find()` method, which you can call directly as well (for example if you want to provide your own abstractions on top of it).
 
@@ -289,20 +308,22 @@ Roadmap
 -------
 The roadmap is still in flux and certainly subject to change. TL;DR: it will support all needed features to work with Couchbase Server 2.0 when it hits a stable release.
 
-0.1 (Initial Release):
+Todo for 0.1 (Initial Release):
 
-	- Support for transparent multiget operations.
-	- Best-Effort test coverage.
+	- Add test-coverage for all written code.
+	- Extensive PHPDoc for all provided classes.
 	- Available on packagist.
 	- Moved from github.com/daschl to github.com/couchbaselabs
 	- README.md-Documentation for all of these features.
 
-0.2:
+Planned for 0.2:
 	
 	- A full-stack ODM model handling (working with your objects through models).
 	- Automated testing through travis-ci.
 	- Adding and deleting of design documents through a friendly API.
-	- Best-Effor test coverage for the new features.
+	- Bucket management through a friendly API.
+	- Support for easy dumping/loading of design docs (speak "migrations")
+	- Best-Effort test coverage for the new features.
 	- README.md-Documentation for all of these features.
 
 Once all those major features are implemented, we'll hit "1.0". If we plan to add more features or refactor big stuff, there will be a 0.3 release as well. Be aware that until "1.0", the API is subject to change and there will be no release notes available to show the API breakages.

@@ -200,10 +200,10 @@ class Client {
 	 * be overriden. If you set `override` false, the `add` operation will be used instead
 	 * and therefore fail if the document did already exist. If `replace`is set to true,
 	 * the `replace` operation will be used and it will fail if the document didn't exist
-	 * before. If you set `serialize` to true, the document will be stored as a serialized
-	 * object instead of a JSON one. Keep in mind that this removes the ability to query
-	 * the document through a view. Finally, you can pass in an expiration time or the
-	 * CAS value.
+	 * before. If you set `transcoder` to `serialize`, the document will be stored as a
+	 * serialized object instead of a JSON one. Keep in mind that this removes the ability
+	 * to query the document through a view. Finally, you can pass in an expiration time or
+	 * the CAS value.
 	 *
 	 * If the operation did succeed, the CAS value is returned, otherwise false.
  	 */
@@ -291,33 +291,55 @@ class Client {
 	 */
 	protected function _findKey($options = array()) {
 		$defaults = array(
-			'callback' => null
+			'callback' => null,
+			'first' => false
 		);
 		$params = $options + $defaults;
 
 		if(!isset($params['key'])) {
 			throw new InvalidArgumentException("No key given");
 		} elseif(!is_string($params['key']) && !is_array($params['key'])) {
-			$message = "The given key must be a string or an array";
+			$message = "The given key must be a string or an array.";
 			throw new InvalidArgumentException($message);
 		}
 
 		extract($params);
-		$doc = $this->_connection->get($key, $callback, $cas);
 
-		if(!$doc) {
+		if(is_array($key)) {
+			$docs = $this->_connection->getMulti($key, $cas);
+		} else {
+			$docs = $this->_connection->get($key, $callback, $cas);	
+		}
+		
+
+		if(empty($docs)) {
 			return false;
 		} elseif($params['raw'] == true) {
-			return $doc;
+			return $docs;
 		}
 
 		$decoder = $this->_transcoders[$options['transcoder']]['decode'];
-		$doc = $decoder($doc);
+		$decoded = new SplFixedArray(count($docs));
 
-		$document = new Document(compact('key', 'doc'));
-		$document->cas($cas);
+		if(is_string($docs)) {
+			$decoded[0] = new Document(array(
+				'key' => $key,
+				'doc' => $decoder($docs)
+			));
+			$decoded[0]->cas($cas);				
+		} elseif(is_array($docs)) {
+			$num = 0;
+			foreach($docs as $key => $doc) {
+				$decoded[$num] = new Document(array(
+					'key' => $key,
+					'doc' => $decoder($doc)
+				));
+				$decoded[$num]->cas($cas[$key]);
+				$num++;
+			}
+		}
 
-		return $document;
+		return $params['first'] == true ? $decoded[0] : $decoded;
 	}
 
 	/**

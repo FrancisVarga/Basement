@@ -241,17 +241,18 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests the find method with the key option.
 	 */
-	public function testFindWithKey() {
+	public function testFindWithKeyWithFirst() {
 		$key = 'mykey';
 		$value = json_encode('foo');
+		$first = true;
 
-		$result = $this->_client->find('key', compact('key'));
+		$result = $this->_client->find('key', compact('key', 'first'));
 		$this->assertFalse($result);
 
 		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $this->_client->find('key', compact('key'));
+		$result = $this->_client->find('key', compact('key', 'first'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(json_decode($value), $result->doc());
@@ -263,18 +264,19 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests the key find with returning raw data.
 	 */
-	public function testFindWithKeyRaw() {
+	public function testFindWithKeyRawWithFirst() {
 		$key = 'mykey';
 		$value = json_encode('foo');
 		$raw = true;
+		$first = true;
 
-		$result = $this->_client->find('key', compact('key', 'raw'));
+		$result = $this->_client->find('key', compact('key', 'raw', 'first'));
 		$this->assertFalse($result);
 
 		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $this->_client->find('key', compact('key', 'raw'));
+		$result = $this->_client->find('key', compact('key', 'raw', 'first'));
 		$this->assertTrue(is_string($result));
 		$this->assertEquals($value, $result);
 
@@ -284,18 +286,19 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * Tests the key find with returning serialized data.
 	 */
-	public function testFindWithKeySerialized() {
+	public function testFindWithKeySerializedWithFirst() {
 		$key = 'mykey';
 		$value = serialize('foo');
 		$transcoder = 'serialize';
+		$first = true;
 
-		$result = $this->_client->find('key', compact('key', 'transcoder'));
+		$result = $this->_client->find('key', compact('key', 'transcoder', 'first'));
 		$this->assertFalse($result);
 
 		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $this->_client->find('key', compact('key', 'transcoder'));
+		$result = $this->_client->find('key', compact('key', 'transcoder', 'first'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(unserialize($value), $result->doc());
@@ -308,37 +311,68 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Test find with an array of keys.
 	 */
 	public function testFindWithMultipleKeys() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
+		$data = array(
+			'multikey_1' => array('foo'),
+			'multikey_2' => array('bar'),
+			'multikey_3' => array('aaa')
+		);
+
+		foreach($data as $key => $value) {
+			$this->_client->connection()->set($key, json_encode($value));
+		}
+
+		$documents = $this->_client->findByKey(array_keys($data));
+		$this->assertEquals(count($data), count($documents));
+		foreach($documents as $num => $document) {
+			$this->assertEquals('Basement\data\Document', get_class($document));
+			$this->assertEquals($data[$document->key()], $document->doc());
+			$this->assertTrue(array_key_exists($document->key(), $data));
+			$this->assertNotEmpty($document->cas());
+		}
+
+		$this->_deleteKeys(array_keys($data));
 	}
 
 	/**
-	 * Test find with an array of keys returning raw data.
+	 * Tests the regular collection behavior.
 	 */
-	public function testFindWithMultipleKeysRaw() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
-	}
-
-	/**
-	 * Test find with an array of keys returning serialized data.
-	 */
-	public function testFindWithMultipleKeysSerialized() {
-		$this->markTestIncomplete('This test has not been implemented yet.');
-	}
-
-	/**
-	 * Tests the wrapper findByKey() method.
-	 */
-	public function testFindByKey() {
+	public function testFindWithKeyWithoutFirst() {
 		$key = 'mykey';
 		$value = json_encode('foo');
 
-		$result = $this->_client->findByKey($key);
+		$result = $this->_client->find('key', compact('key'));
 		$this->assertFalse($result);
 
 		$result = $this->_client->connection()->set($key, $value);
 		$this->assertNotEmpty($result);
 
-		$result = $this->_client->findByKey($key);
+		$result = $this->_client->find('key', compact('key'));
+		$this->assertFalse(empty($result));
+		$this->assertEquals(1, count($result));
+		foreach($result as $doc) {
+			$this->assertEquals($key, $doc->key());
+			$this->assertEquals(json_decode($value), $doc->doc());
+			$this->assertNotEmpty($doc->cas());
+		}
+
+		$this->_deleteKeys(array($key));
+	}
+
+	/**
+	 * Tests the wrapper findByKey() method.
+	 */
+	public function testFindByKeyWithFirst() {
+		$key = 'mykey';
+		$value = json_encode('foo');
+		$first = true;
+
+		$result = $this->_client->findByKey($key, compact('first'));
+		$this->assertFalse($result);
+
+		$result = $this->_client->connection()->set($key, $value);
+		$this->assertNotEmpty($result);
+
+		$result = $this->_client->findByKey($key, compact('first'));
 		$this->assertEquals('Basement\data\Document', get_class($result));
 		$this->assertEquals($key, $result->key());
 		$this->assertEquals(json_decode($value), $result->doc());

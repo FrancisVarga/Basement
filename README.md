@@ -236,7 +236,7 @@ When stored in the cluster, the JSON document would look like `{"firstname":"Mic
 use \Basement\data\Document;
 $doc = new Document();
 
-$doc->firstname = 'Michael;
+$doc->firstname = 'Michael';
 echo $doc->firstname; // Returns 'Michael'
 ```
 

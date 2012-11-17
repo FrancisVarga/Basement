@@ -104,6 +104,39 @@ class DocumentTest extends PHPUnit_Framework_TestCase {
 		$decoded = json_decode($document->toJson(), true);
 		$this->assertEquals($doc->date, $decoded['date']);
 	}
+
+	/**
+	 * Tests getting and setting of document attributes.
+	 */
+	public function testGetAndSet() {
+		$document = new Document();
+		$document->set('beer', 'is_cool');
+		$document->set('wine', array('not_so' => 'much'));
+
+		$this->assertEquals('is_cool', $document->get('beer'));
+		$this->assertEquals(array('not_so' => 'much'), $document->get('wine'));
+		$this->assertNull($document->get('notSet'));
+		$expected = array(
+			'beer' => 'is_cool',
+			'wine' => array('not_so' => 'much')
+		);
+		$this->assertEquals($expected, $document->doc());
+	}
+
+	/**
+	 * Tests the __get and __set magic methods for syntactic sugar.
+	 */
+	public function testMagicGettersAndSetters() {
+		$document = new Document();
+		$document->firstname = 'Michael';
+		$document->gender = 'male';
+
+		$expected = array(
+			'firstname' => 'Michael',
+			'gender' => 'male'
+		);
+		$this->assertEquals($expected, $document->doc());
+	}
 }
 
 ?>

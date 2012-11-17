@@ -53,6 +53,35 @@ class Document {
 	}
 
 	/**
+	 * Set a key with a given value in the document.
+	 */
+	public function set($key, $value) {
+		$this->_doc[$key] = $value;
+		return $this;
+	}
+
+	/** 
+	 * Get a value from the document by the given key.
+	 */
+	public function get($key) {
+		return isset($this->_doc[$key]) ? $this->_doc[$key] : null;
+	}
+
+	/**
+	 * Syntactic sugar to document setters.
+	 */
+	public function __set($key, $value) {
+		return $this->set($key, $value);
+	}
+
+	/**
+	 * Syntactic sugar for document attribute getters.
+	 */
+	public function __get($key) {
+		return $this->get($key);
+	}
+
+	/**
 	 * Gets or sets the key of the document.
 	 *
 	 * Note that if no key was set and it is accessed for the first time, 

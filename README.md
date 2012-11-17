@@ -204,6 +204,42 @@ $client->find('key', array('key' => $key, 'transcoder' => 'serialize'));
 $client->findByKey($key, array('transcoder' => 'serialize'));
 ```
 
+Working with Documents
+----------------------
+Instances of `\Basement\data\Document` ideally represent your documents stored in Couchbase Server. When data is fetched out of the cluster, those objects are created on the fly and they also provide easy handling when storing them back.
+
+Every document provides four "meta" methods, which allow you to read and manipulate settings of the document. These are:
+
+- key(): Contains the unique key of the document.
+- cas(): Contains the CAS value of the document.
+- doc(): Contains the value of the document itself.
+- value(): The value, which may be populated during view queries.
+
+Depending on how you interact with the cluster, not every attribute is set all the time. Aside from these four methods, there are two that let you work with the stored data itself:
+
+- set($key, $value): Sets the key with the value inside the document.
+- get($key): Returns the value for the given key.
+
+Here is a quick example on how to work with it:
+
+```php
+use \Basement\data\Document;
+$doc = new Document();
+
+$doc->set('firstname', 'Michael');
+$doc->get('firstname'); // Returns 'Michael'
+```
+
+When stored in the cluster, the JSON document would look like `{"firstname":"Michael"}`. You can also make use of the property overloading methods `__get()` and `__set()` like this to make it even more elegant:
+
+```php
+use \Basement\data\Document;
+$doc = new Document();
+
+$doc->firstname = 'Michael;
+echo $doc->firstname; // Returns 'Michael'
+```
+
 Working with Views
 ------------------
 Working with views is naturally a little bit different than querying by a unique key. While the process "behind the scenes" is completely different, both the SDK and Basement are trying to keep the interface as uniform as possible. Please refer to the official Couchbase Server 2.0 documentation on how to create design documents and views.

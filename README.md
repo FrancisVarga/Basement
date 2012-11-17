@@ -195,14 +195,14 @@ Here is a full example on how to query views:
 use Basement\Client;
 
 $client = new Client();
-$documents = $client->findByView("designName", "viewName");
+$viewResult = $client->findByView("designName", "viewName");
 
-foreach($documents as $document) {
+foreach($viewResult->get() as $document) {
 	echo $document->key();
 }
 ```
 
-The `findByView()` method returns - similar to the `findByKey()` method - a collection of `\Basement\data\Document` objects. If none are found, an empty collection is returned. This makes it easy to iterate over it and not run into `null` errors.
+The `findByView()` method returns an instance of `Basement\view\ViewResult`. The `get()` method provides instances of `\Basement\data\Document` objects (similar to key-based get operations). If none are found, an empty collection is returned. This makes it easy to iterate over it and not run into `null` errors.
 
 Couchbase views can be queried with a large variety of parameters to customize the output. These arguments can either be passed in as an array or by using the `\Basement\view\Query` object. The latter is preferred because the object only allows you to set the correct params and checks for programming and logic errors. If you use a plain array, you are on your own. Here is a short example on how to use the query parameters:
 
@@ -213,17 +213,16 @@ use Basement\view\Query;
 $client = new Client();
 
 $arrayQuery = array('reduce' => 'false', 'include_docs' => 'true');
-$documents = $client->findByView("design", "view", $arrayQuery);
+$viewResult = $client->findByView("design", "view", $arrayQuery);
 
 $objectQuery = new Query();
 $objectQuery->reduce(false)->includeDocs(true);
-$documents = $client->findByView("design", "view", $objectQuery);
+$viewResult = $client->findByView("design", "view", $objectQuery);
 ```
 
 You can see that the `Query` object allows you to chain params and also handles the conversion from booleans to strings for you. See the API documentation for the `Query` class and the Couchbase Server 2.0 Manual on Views for more information on what is supported.
 
 If you don't use a reduce function and you set `includeDocs` to `true`, the appropriate payload will be automatically populated into the `Document`objects:
-
 
 
 Of course, there is also the more verbose `find()` method available:
@@ -232,6 +231,18 @@ Of course, there is also the more verbose `find()` method available:
 // These two method calls are the same:
 $client->findByView('myDesign', 'myView', $arrayQuery);
 $client->find('view', array('design' => 'myDesign', 'view' => 'myView', 'query' => $arrayQuery));
+```
+
+The `ViewResult` object allows you to check with `isReduced()` if it is reduced or not. If it is a reduced result, then the collection of documents don't contain documents with only values (because reduced results can't be mapped to documents one by one). You can still iterate over it and read the results:
+
+```php
+$query = new Query();
+$query->setReduce(true);
+$viewResult = $client->findByView('design', 'view', $query);
+
+foreach($viewResult->get() as $reducedDoc) {
+	echo $reducedDoc->value();
+}
 ```
 
 Advanced Usage

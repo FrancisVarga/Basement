@@ -1,9 +1,9 @@
 {
-	"name": "daschl/Basement",
+	"name": "basement/basement",
 	"type": "library",
 	"description": "A wrapper around the Couchbase SDK",
 	"keywords": ["couchbase"],
-	"homepage": "http://github.com/daschl/Basement",
+	"homepage": "http://github.com/Basement/Basement",
 	"license": "Apache-2.0",
 	"authors": [{
 		"name": "Michael Nitschinger",

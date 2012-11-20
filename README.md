@@ -135,9 +135,9 @@ By overriding them, you can control the behavior how the document is stored and 
 
 If either the `Document` or the `array()` are somehow invalid or not well-formatted, a `InvalidArgumentException`is raised with a proper error message.
 
-Retreiving Documents
+Retrieving Documents
 --------------------
-Documents can either be retreived by key or through a view. Handling is nearly the same from a client perspective, so working with views is discussed later on. This part focuses on the `find()` method and all its variants.
+Documents can either be retrieved by key or through a view. Handling is nearly the same from a client perspective, so working with views is discussed later on. This part focuses on the `find()` method and all its variants.
 
 The `findByKey()` and `findByView()`methods are the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\model\Document`, but you can also use serialization or raw data if you prefer to.
 

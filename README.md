@@ -30,7 +30,7 @@ Add this to your `composer.json`:
 ```json
 {
 	"require": {
-		"daschl/Basement": "0.1.0"
+		"Basement/Basement": "0.1.0"
 	}
 }
 ```
@@ -357,14 +357,6 @@ Here is the default JSON transcoder for reference:
 Roadmap
 -------
 The roadmap is still in flux and certainly subject to change. TL;DR: it will support all needed features to work with Couchbase Server 2.0 when it hits a stable release.
-
-Todo for 0.1 (Initial Release):
-
-	- Add test-coverage for all written code.
-	- Extensive PHPDoc for all provided classes.
-	- Available on packagist.
-	- Moved from github.com/daschl to github.com/couchbaselabs
-	- README.md-Documentation for all of these features.
 
 Planned for 0.2:
 	

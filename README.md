@@ -277,8 +277,22 @@ $viewResult = $client->findByView("design", "view", $objectQuery);
 
 You can see that the `Query` object allows you to chain params and also handles the conversion from booleans to strings for you. See the API documentation for the `Query` class and the Couchbase Server 2.0 Manual on Views for more information on what is supported.
 
-If you don't use a reduce function and you set `includeDocs` to `true`, the appropriate payload will be automatically populated into the `Document`objects:
+If you don't use a reduce function and you set `includeDocs` to `true`, the appropriate payload will be automatically populated into the `Document`objects.
 
+Couchbase Server 2.0 allows you to separate Views into development and production Views. This has several benefits, including that you don't have to index your whole dataset while developing. The convention is that views starting with `dev_` in the design document name are considered development views. Basement assists you with that and adds the prefix only when needed. On client initialization, you can pass in an `environment` variable (which defaults to `development`). Only when it is set to development, Basement prefixes your design document names with `dev_`. This means that you can deploy the same code in test, development and production and you don't have to worry about it at all. The param is also overridable on a per-query basis.
+
+```php
+// Prefixed with `dev_`
+$client = new Client();
+
+// Not prefixed with `dev_`
+$client = new Client(array('environment' => 'production'));
+
+// Override per query
+$client->findByView("design", "view", array('environment' => 'test'));
+```
+
+This solution also integrates nicely with modern frameworks that allow you to set a specific environment based on params like `$_SERVER` or `$_ENV`.
 
 Of course, there is also the more verbose `find()` method available:
 

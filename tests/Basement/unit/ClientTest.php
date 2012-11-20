@@ -22,7 +22,8 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Use this to override the default config settings.
 	 */
 	protected $_testConfig = array(
-		'host' => '127.0.0.1'
+		'host' => '127.0.0.1',
+		'environment' => 'test'
 	);
 
 	/**
@@ -53,7 +54,8 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 			'password' => '',
 			'user' => null,
 			'persist' => false,
-			'transcoder' => 'json'
+			'transcoder' => 'json',
+			'environment' => 'development'
 		);
 
 		$config = $client->config();
@@ -503,6 +505,8 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($result->isReduced());
 		$documents = $result->get();
 		$this->assertEquals($docAmount, $documents[0]->value());
+
+		$this->_deleteKeys($keysToDelete);
 	}
 
 	/**
@@ -572,6 +576,21 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testInvalidTranscoder() {
 		$this->_client->transcoder('invalid', array('encoder' => array()));
+	}
+
+	/**
+	 * Verifies the correct usage of the view environment.
+	 *
+	 * * @expectedException \Basement\view\InvalidViewException
+	 */
+	public function testViewEnvironment() {
+		$config = array('environment' => 'development') + $this->_testConfig;
+		$client = new Client($config);
+
+		$query = new Query();
+		$design = 'posts';
+		$view = 'all';
+		$result = $client->find('view', compact('design', 'view', 'query'));
 	}
 
 }

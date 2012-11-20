@@ -57,7 +57,8 @@ class Client {
 			'user' => null,
 			'persist' => false,
 			'connect' => true,
-			'transcoder' => 'json'
+			'transcoder' => 'json',
+			'environment' => 'development'
 		);
 		$this->_config = $options + $defaults;
 		$this->_config['user'] ?: $this->_config['bucket'];
@@ -346,7 +347,10 @@ class Client {
 	 * Helper method for the `find` method to find by view.
 	 */
 	protected function _findView($options = array()) {
-		$defaults = array('query' => array());
+		$defaults = array(
+			'query' => array(),
+			'environment' => $this->_config['environment']
+		);
 		$params = $options + $defaults;
 
 		if(empty($params['design']) || empty($params['view'])) {
@@ -361,11 +365,17 @@ class Client {
 			throw new InvalidArgumentException("Unknown query value given");
 		}
 
+		if($environment == 'development' && !preg_match('/^dev_/', $design)) {
+			$design = 'dev_' . $design;
+		}
+
 		set_error_handler(function($no, $str, $file, $line, array $context) {
 			if(preg_match('/Error opening view ([^,]+)/', $str, $match)) {
 				throw new InvalidViewException("View " . $match[1] . " not found");
 			} elseif(preg_match('/Design document _design\/([^\s]+) not found/', $str, $match)) {
 				throw new InvalidViewException("Design \"" . $match[1] . "\" not found");
+			} elseif(preg_match('/\{not_found,deleted\}/', $str)) {
+				throw new InvalidViewException("View not found (deleted)");
 			} else {
 				throw new RuntimeException($str);
 			}

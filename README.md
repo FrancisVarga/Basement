@@ -30,7 +30,7 @@ Add this to your `composer.json`:
 ```json
 {
 	"require": {
-		"Basement/Basement": "0.1.0"
+		"basement/basement": "0.1.0"
 	}
 }
 ```

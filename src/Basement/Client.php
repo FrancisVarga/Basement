@@ -43,6 +43,11 @@ class Client {
 	protected $_transcoders = array();
 
 	/**
+	 * Holds all currently initialized connections.
+	 */
+	protected static $_connections = array();
+
+	/**
 	 * Create and connect to the CouchbaseClient.
 	 *
 	 * If no user is provided (or is null), then it is assumed to be the same
@@ -51,6 +56,7 @@ class Client {
 	 */
 	public function __construct($options = array()) {
 		$defaults = array(
+			'name' => 'default',
 			'host' => '127.0.0.1',
 			'bucket' => 'default',
 			'password' => '',
@@ -135,12 +141,35 @@ class Client {
 		set_error_handler(function($no, $str, $file, $line, array $context) {
 			throw new RuntimeException($str);
 		});
-
 		$this->_connection = new Couchbase($host, $user, $password, $bucket);
-
 		restore_error_handler();
 
+		static::$_connections[$name] = $this;
 		return $this->connected();
+	}
+
+	/**
+	 * Return all or a specific open connections.
+	 */
+	public static function connections($name = null) {
+		if(!$name) {
+			return static::$_connections;
+		}
+
+		if(!isset(static::$_connections[$name])) {
+			return false;
+		}
+
+		return static::$_connections[$name];
+	}
+
+	/**
+	 * Disconnect the current connection.
+	 */
+	public function disconnect() {
+		$this->_connection = null;
+		unset(static::$_connections[$this->_config['name']]);
+		return true;
 	}
 
 	/**

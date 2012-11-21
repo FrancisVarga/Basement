@@ -64,6 +64,7 @@ If you don't provide any further parameters, it will try to connect to `127.0.0.
 
 ```php
 $defaults = array(
+	'name' => 'default',
 	'host' => '127.0.0.1',
 	'bucket' => 'default',
 	'password' => '',
@@ -92,6 +93,25 @@ $client->connection()->increment("mycounter", 1);
 ```
 
 The `transcoder` setting defines in which format the data will be encoded/decoded when written/read to/from the cluster. The default setting is `json`, but you can either provide `serialize` or your own ones (see the advanced topics). You can also override this setting on a per-query-basis.
+
+Managing Connections
+--------------------
+The `Client` class allows you to open more connections at the same time and keeps track of them all. Every connection needs to have a unique name, the default is `default`. You can override it on connect with the `name` param:
+
+```php
+$backup = new \Basement\Client(array('name' => 'backup'));
+```
+
+You can get your connections all the time by calling the static `connections` method and passing on the name:
+
+```php
+$backup = Client::connections('backup');
+$backup->findByView(...);
+```
+
+If you call `disconnect()` on the object, it will remove it from the connections array. Important is to note that the name of the connection must be unique or it will override the previous connection. This also applies to the `default` name, which will override it when you don't pass a `name` param at all.
+
+You will later see how to use this functionality on your models to define different connections on a per-model basis.
 
 Storing Documents
 -----------------

@@ -49,6 +49,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$client = new Client(array('connect' => false));
 
 		$expected = array(
+			'name' => 'default',
 			'host' => '127.0.0.1',
 			'bucket' => 'default',
 			'password' => '',
@@ -85,6 +86,35 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($client->connected());
 		$this->assertInstanceOf('Couchbase', $client->connection());
 		$this->assertTrue($client->connect());
+	}
+
+	/**
+	 * Tests disconnecting a client.
+	 */
+	public function testDisconnect() {
+		$client = new Client($this->_testConfig);
+
+		$this->assertTrue($client->connected());
+		$this->assertEquals(1, count($client::connections()));
+		$this->assertTrue($client->disconnect());
+		$this->assertFalse($client->connected());
+		$this->assertEquals(0, count($client::connections()));
+	}
+
+	/**
+	 * Tests the behavior of multiple connections.
+	 */
+	public function testMultipleConnections() {
+		$defaultConfig = $this->_testConfig;
+		$backupConfig = array('name' => 'backup') + $this->_testConfig;
+
+		$defaultConnection = new Client($defaultConfig);
+		$backupConnection = new Client($backupConfig);
+
+		$this->assertEquals(2, count(Client::connections()));
+		$this->assertEquals($defaultConnection, Client::connections('default'));
+		$this->assertEquals($backupConnection, Client::connections('backup'));
+		$this->assertFalse(Client::connections('invalid'));
 	}
 
 	/**

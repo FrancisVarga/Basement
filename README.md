@@ -356,19 +356,18 @@ Here is the default JSON transcoder for reference:
 
 Roadmap
 -------
-The roadmap is still in flux and certainly subject to change. TL;DR: it will support all needed features to work with Couchbase Server 2.0 when it hits a stable release.
+Here is the rough roadmap towards 1.0 (in the order of when they will be implemented):
 
-Planned for 0.2:
-	
-	- A full-stack ODM model handling (working with your objects through models).
-	- Automated testing through travis-ci.
-	- Adding and deleting of design documents through a friendly API.
-	- Bucket management through a friendly API.
-	- Support for easy dumping/loading of design docs (speak "migrations")
-	- Best-Effort test coverage for the new features.
-	- README.md-Documentation for all of these features.
+* Support for more connections at the same time
+* Enhanced Collection classes for easier usage
+* Basic model functionality (Create, Save, Update, Delete, Proxy find methods, Access to multiple connections from a model-property, Automatic type-setting)
+* Enhanced Query-class tests (may be delivered by the SDK anyway)
+* Design Document Management (adding, listing, deleting)
+* Pagination for View quries
+* Bucket Management (mapper for SDK-provided API)
+* View Migrations
 
-Once all those major features are implemented, we'll hit "1.0". If we plan to add more features or refactor big stuff, there will be a 0.3 release as well. Be aware that until "1.0", the API is subject to change and there will be no release notes available to show the API breakages.
+Of course, documentation and general testing support is always included. If you have any suggestion on this, let us know!
 
 Contributing & Support
 ----------------------

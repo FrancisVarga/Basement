@@ -139,6 +139,8 @@ class DocumentTest extends PHPUnit_Framework_TestCase {
 			'gender' => 'male'
 		);
 		$this->assertEquals($expected, $document->doc());
+		$this->assertEquals('Michael', $document->firstname);
+		$this->assertEquals('male', $document->gender);
 	}
 }
 

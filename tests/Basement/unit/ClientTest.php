@@ -540,6 +540,32 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Tests the findByView method.
+	 */
+	public function testFindByView() {
+		$docAmount = 5;
+		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
+
+		sleep(2);
+
+		$query = new Query();
+		$query->stale(false)->reduce(false)->includeDocs(true);
+		$result = $this->_client->findByView('posts', 'all', $query);
+		$this->assertEquals($docAmount, count($result->get()));
+		$this->assertTrue($result instanceof \Basement\view\ViewResult);
+		$this->assertFalse($result->isReduced());
+
+		foreach($result->get() as $document) {
+			$this->assertRegexp('/post:\d/', $document->key());
+			$this->assertNotEmpty($document->doc());
+			$this->assertTrue(is_array($document->doc()));
+			$this->assertNull($document->cas());
+		}
+
+		$this->_deleteKeys($keysToDelete);
+	}
+
+	/**
 	 * Tests accessing the view method with empty params.
 	 *
 	 * @expectedException InvalidArgumentException

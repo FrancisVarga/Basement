@@ -378,7 +378,6 @@ Roadmap
 -------
 Here is the rough roadmap towards 1.0 (in the order of when they will be implemented):
 
-* Support for more connections at the same time
 * Enhanced Collection classes for easier usage
 * Basic model functionality (Create, Save, Update, Delete, Proxy find methods, Access to multiple connections from a model-property, Automatic type-setting)
 * Enhanced Query-class tests (may be delivered by the SDK anyway)

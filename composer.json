@@ -1,8 +1,8 @@
 {
 	"name": "basement/basement",
 	"type": "library",
-	"description": "A wrapper around the Couchbase SDK",
-	"keywords": ["couchbase"],
+	"description": "The simple ODM for Couchbase on PHP",
+	"keywords": ["couchbase", "odm", "persistence", "memcached"],
 	"homepage": "http://github.com/Basement/Basement",
 	"license": "Apache-2.0",
 	"authors": [{

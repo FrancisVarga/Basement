@@ -390,8 +390,6 @@ Of course, documentation and general testing support is always included. If you 
 
 Contributing & Support
 ----------------------
-This project is not officially supported by Couchbase, but I do my best to keep it up-to-date with the SDK itself. Any help is greatly appreciated!
-
 If you want to hack on Basement, make sure you run Composer with `--dev` to have the development dependencies (like [PHPUnit](http://www.phpunit.de/)) installed. You can then invoke the test suite like this:
 
 ```

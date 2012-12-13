@@ -132,8 +132,6 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * There is something not working so this is skipped for now.
 	 */
 	public function testSuccessfulConnectWithTwoHosts() {
-		$this->markTestSkipped('Skipped because of a bug in the SDK.');
-
 		$config = array('host' => array('1.2.3.4', $this->_testConfig['host']));
 		$client = new Client($config);
 

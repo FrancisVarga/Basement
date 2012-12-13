@@ -321,7 +321,6 @@ class Client {
 	 */
 	protected function _findKey($options = array()) {
 		$defaults = array(
-			'callback' => null,
 			'first' => false
 		);
 		$params = $options + $defaults;
@@ -338,7 +337,7 @@ class Client {
 		if(is_array($key)) {
 			$docs = $this->_connection->getMulti($key, $cas);
 		} else {
-			$docs = $this->_connection->get($key, $callback, $cas);	
+			$docs = $this->_connection->get($key, $cas);	
 		}
 		
 
@@ -394,6 +393,12 @@ class Client {
 			throw new InvalidArgumentException("Unknown query value given");
 		}
 
+		$includeDocs = false;
+		if(isset($query['include_docs']) && $query['include_docs'] == true) {
+			$includeDocs = true;
+			unset($query['include_docs']);
+		}
+
 		if($environment == 'development' && !preg_match('/^dev_/', $design)) {
 			$design = 'dev_' . $design;
 		}
@@ -411,6 +416,9 @@ class Client {
 		});
 
 		$result = $this->_connection->view($design, $view, $query);
+		if(isset($result['error'])) {
+			throw new InvalidViewException($result['reason']);
+		}
 
 		restore_error_handler();
 
@@ -426,9 +434,12 @@ class Client {
 			if(!$reduce) {
 				$doc['key'] = $row['id'];
 			}
-			if(isset($row['doc']['json'])) {
-				$doc['doc'] = $row['doc']['json'];
+
+			if($includeDocs) {
+				$foundDoc = $this->_connection->get($doc['key']);
+				$doc['doc'] = $foundDoc ? json_decode($foundDoc, true) : null;
 			}
+
 			$documents[$num] = new Document($doc);
 		}
 

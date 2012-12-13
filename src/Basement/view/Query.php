@@ -92,7 +92,7 @@ class Query {
 	 * Whether to include the full docs or not.
 	 */
 	public function includeDocs($docs) {
-		$this->_params['include_docs'] = $docs == true ? 'true' : 'false';
+		$this->_params['include_docs'] = $docs == true;
 		return $this;		
 	}
 

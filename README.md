@@ -115,13 +115,13 @@ You will later see how to use this functionality on your models to define differ
 
 Storing Documents
 -----------------
-Basement will do its best to transform the data you want to store into JSON. To store whole documents, you can use the `save()` method on the `Basement\Client` object. Currently, there are two ways of passing a document to the `save()` method: either through an array in the format of `array('key' => $stringKey, 'doc' => $anyDoc)` or by using instances of the `Basement\model\Document` object. The latter is recommended since it provides much more flexibility on the document handling and more features will be added to it in the future.
+Basement will do its best to transform the data you want to store into JSON. To store whole documents, you can use the `save()` method on the `Basement\Client` object. Currently, there are two ways of passing a document to the `save()` method: either through an array in the format of `array('key' => $stringKey, 'doc' => $anyDoc)` or by using instances of the `Basement\data\Document` object. The latter is recommended since it provides much more flexibility on the document handling and more features will be added to it in the future.
 
 Here is a quick example on how to store the same array as JSON in two different ways:
 
 ```php
 use Basement\Client;
-use Basement\model\Document;
+use Basement\data\Document;
 
 $client = new Client();
 
@@ -129,7 +129,7 @@ $key = 'sampledocument';
 $doc = array('store' => 'me', 'please');
 
 // Through an array
-$arrayDoc = array(compact('key', 'doc'));
+$arrayDoc = compact('key', 'doc');
 $client->save($arrayDoc);
 
 // Through the Document object
@@ -137,7 +137,7 @@ $objectDoc = new Document(compact('key', 'doc'));
 $client->save($objectDoc);
 ```
 
-In this simple example its not obvious why the `Basement\model\Document` is preferred, but (as shown later) it provides much more convenience features like automatic key generation for free.
+In this simple example its not obvious why the `Basement\data\Document` is preferred, but (as shown later) it provides much more convenience features like automatic key generation for free.
 
 The `save()` method has a bunch of options that you can set, with sensible defaults already set:
 
@@ -159,13 +159,13 @@ Retrieving Documents
 --------------------
 Documents can either be retrieved by key or through a view. Handling is nearly the same from a client perspective, so working with views is discussed later on. This part focuses on the `find()` method and all its variants.
 
-The `findByKey()` and `findByView()`methods are the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\model\Document`, but you can also use serialization or raw data if you prefer to.
+The `findByKey()` and `findByView()`methods are the easiest way to read a document (or a collection of documents) out of your Couchbase cluster. The default behavior will convert them from JSON to instances of `Basement\data\Document`, but you can also use serialization or raw data if you prefer to.
 
 Here is an example which stores a document and then fetches it back out again:
 
 ```php
 use Basement\Client;
-use Basement\model\Document;
+use Basement\data\Document;
 
 $client = new Client();
 
@@ -193,7 +193,7 @@ foreach($documents as $doc) {
 }
 ```
 
-If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\model\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'transcoder' => 'serialize'` so that it will use `unserialize()` instead of `json_decode()`.
+If you prefer to work with the raw result instead of having it shuffled into an instance of `Basement\data\Document`, then you can use the `'raw' => true` option. Also, if you've previously stored serialized documents instead of JSON, you can use `'transcoder' => 'serialize'` so that it will use `unserialize()` instead of `json_decode()`.
 
 If you pass in an array of keys, the collection returned contains more than one document. Behind the scenes, the more efficient `getMulti()` method is used instead of the normal `get()` method. On the other hand, if you are sure that you only want one document back you can add the `"first" => true` option. This will return the first document of the collection:
 

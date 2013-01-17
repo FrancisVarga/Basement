@@ -11,7 +11,7 @@ use Basement\data\Document;
 use Basement\view\Query;
 use Basement\view\ViewResult;
 
-class ClientTest extends PHPUnit_Framework_TestCase {
+class ClientTest extends BaseTest {
 
 	/**
 	 * A working instance of the client to test against.
@@ -19,18 +19,17 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	protected $_client = null;
 
 	/**
-	 * Use this to override the default config settings.
-	 */
-	protected $_testConfig = array(
-		'host' => '127.0.0.1',
-		'environment' => 'test'
-	);
-
-	/**
-	 * Instantiate a Client ready to use for the tests.
+	 * Instantiate a client and prepare design documents.
 	 */
 	public function setUp() {
 		$this->_client = new Client($this->_testConfig);
+
+		$name = "posts";
+		$doc = '{"views":{"all":{"map":"function (doc, meta) {\n  '
+				. 'if(doc.type == \"post\") {\n  \temit(meta.id, '
+				. 'null);\n  }\n}","reduce":"_count"}}}';
+		$this->_client->connection()->setDesignDoc($name, $doc);
+
 	}
 
 	/**
@@ -182,7 +181,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * as the document to store.
 	 */
 	public function testSaveWithDefaultSettingsAndArray() {
-		$key = 'testdocument-1';
+		$key = $this->_randomKey();
 		$doc = array('foobar');
 
 		$result = $this->_client->save(compact('key', 'doc'));
@@ -218,7 +217,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Test the correct saving of a Basement Document.
 	 */
 	public function testSaveWithDefaultSettingsAndDocument() {
-		$key = 'testdocument-1';
+		$key = $this->_randomKey();
 		$doc = array('foobar');
 
 		$document = new Document(compact('key', 'doc'));
@@ -236,7 +235,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the save command with the add operation.
 	 */
 	public function testSaveWithNoOverride() {
-		$key = 'testdocument-1';
+		$key = $this->_randomKey();
 		$doc = array('foobar');
 
 		$stored = 'something';
@@ -255,7 +254,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the save command with the replace operation.
 	 */
 	public function testSaveWithReplace() {
-		$key = 'testdocument-1';
+		$key = $this->_randomKey();
 		$doc = array('foobar');
 
 		$this->_client->connection()->delete($key);
@@ -272,7 +271,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the find method with the key option.
 	 */
 	public function testFindWithKeyWithFirst() {
-		$key = 'mykey';
+		$key = $this->_randomKey();
 		$value = json_encode('foo');
 		$first = true;
 
@@ -295,7 +294,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the key find with returning raw data.
 	 */
 	public function testFindWithKeyRawWithFirst() {
-		$key = 'mykey';
+		$key = $this->_randomKey();
 		$value = json_encode('foo');
 		$raw = true;
 		$first = true;
@@ -317,7 +316,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the key find with returning serialized data.
 	 */
 	public function testFindWithKeySerializedWithFirst() {
-		$key = 'mykey';
+		$key = $this->_randomKey();
 		$value = serialize('foo');
 		$transcoder = 'serialize';
 		$first = true;
@@ -342,9 +341,9 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testFindWithMultipleKeys() {
 		$data = array(
-			'multikey_1' => array('foo'),
-			'multikey_2' => array('bar'),
-			'multikey_3' => array('aaa')
+			$this->_randomKey() => array('foo'),
+			$this->_randomKey() => array('bar'),
+			$this->_randomKey() => array('aaa')
 		);
 
 		foreach($data as $key => $value) {
@@ -367,7 +366,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the regular collection behavior.
 	 */
 	public function testFindWithKeyWithoutFirst() {
-		$key = 'mykey';
+		$key = $this->_randomKey();
 		$value = json_encode('foo');
 
 		$result = $this->_client->find('key', compact('key'));
@@ -392,7 +391,7 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 	 * Tests the wrapper findByKey() method.
 	 */
 	public function testFindByKeyWithFirst() {
-		$key = 'mykey';
+		$key = $this->_randomKey();
 		$value = json_encode('foo');
 		$first = true;
 
@@ -413,15 +412,6 @@ class ClientTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * Tests basic querying of a view.
-	 *
-	 * Design: "posts", View: "all"
-	 *
-	 * function (doc, meta) {
-	 *   if(doc.type == "post") {
-	 *     emit(meta.id, null);
-	 *   }
-	 * }
-	 *
 	 */
 	public function testFindWithView() {
 		$docAmount = 5;

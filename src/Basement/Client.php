@@ -333,39 +333,28 @@ class Client {
 		}
 
 		extract($params);
+		$cas = null;
 
-		if(is_array($key)) {
-			$docs = $this->_connection->getMulti($key, $cas);
-		} else {
-			$docs = $this->_connection->get($key, $cas);	
-		}
-		
+		$keys = (array) $key;
+		$docs = $this->_connection->getMulti($keys, $cas);
 
 		if(empty($docs)) {
 			return false;
 		} elseif($params['raw'] == true) {
-			return $docs;
+			return count($docs) == 1 ? array_shift($docs) : $docs;
 		}
 
 		$decoder = $this->_transcoders[$options['transcoder']]['decode'];
 		$decoded = new SplFixedArray(count($docs));
 
-		if(is_string($docs)) {
-			$decoded[0] = new Document(array(
+		$num = 0;
+		foreach($docs as $key => $doc) {
+			$decoded[$num] = new Document(array(
 				'key' => $key,
-				'doc' => $decoder($docs)
+				'doc' => $decoder($doc)
 			));
-			$decoded[0]->cas($cas);				
-		} elseif(is_array($docs)) {
-			$num = 0;
-			foreach($docs as $key => $doc) {
-				$decoded[$num] = new Document(array(
-					'key' => $key,
-					'doc' => $decoder($doc)
-				));
-				$decoded[$num]->cas($cas[$key]);
-				$num++;
-			}
+			$decoded[$num]->cas($cas[$key]);
+			$num++;
 		}
 
 		return $params['first'] == true ? $decoded[0] : $decoded;

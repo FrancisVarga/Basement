@@ -254,7 +254,7 @@ class Client {
 			} elseif(is_array($document) && !empty($document['key'])) {
 				return $document['key'];
 			} else {
-				throw new InvalidArgumentException("Invald document type given.");
+				throw new InvalidArgumentException("Invalid document type given.");
 			}
 		};
 

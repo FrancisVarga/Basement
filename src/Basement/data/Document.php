@@ -39,7 +39,7 @@ class Document {
 	 * Create a new document.
 	 */
 	public function __construct($options = array()) {
-		if(!empty($options['key'])) {
+		if(isset($options['key'])) {
 			$this->_key = $options['key'];
 		}
 
@@ -100,7 +100,7 @@ class Document {
 			return $this;
 		}
 
-		if($this->_key == null) {
+		if($this->_key === null) {
 			$this->_key = Client::generateKey();
 		}
 

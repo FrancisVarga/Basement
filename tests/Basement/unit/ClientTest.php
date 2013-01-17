@@ -637,6 +637,31 @@ class ClientTest extends BaseTest {
 		$result = $client->find('view', compact('design', 'view', 'query'));
 	}
 
+	/**
+	 * Verifies the document iteration and access possibilities.
+	 */
+	public function testDocumentIteration() {
+		$docAmount = 5;
+		$keysToDelete = $this->_populateSamplePostDocuments($docAmount);
+
+		sleep(2);
+
+		$query = new Query();
+		$query->stale(false)->reduce(false);
+		$result = $this->_client->findByView('posts', 'all', $query);
+		$documents = $result->get();
+
+		$this->assertEquals($docAmount, $documents->size());
+		$this->assertEquals("post:1", $documents->current()->key());
+		$this->assertEquals("post:2", $documents->next()->key());
+		$this->assertEquals("post:1", $documents->prev()->key());
+
+		$documents->clear();
+		$this->assertEquals(0, $documents->size());
+
+		$this->_deleteKeys($keysToDelete);
+	}
+
 }
 
 ?>

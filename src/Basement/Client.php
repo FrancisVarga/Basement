@@ -11,9 +11,9 @@ namespace Basement;
 use \Couchbase;
 use \RuntimeException;
 use \InvalidArgumentException;
-use \SplFixedArray;
 
 use Basement\data\Document;
+use Basement\data\DocumentCollection;
 use Basement\view\ViewResult;
 use Basement\view\InvalidViewException;
 
@@ -345,7 +345,7 @@ class Client {
 		}
 
 		$decoder = $this->_transcoders[$options['transcoder']]['decode'];
-		$decoded = new SplFixedArray(count($docs));
+		$decoded = new DocumentCollection();
 
 		$num = 0;
 		foreach($docs as $key => $doc) {
@@ -413,8 +413,8 @@ class Client {
 
 		$reduce = isset($query['reduce']) && $query['reduce'] == 'true';
 
-		$documents = new SplFixedArray(count($result['rows']));
-		if($documents->getSize() == 0) {
+		$documents = new DocumentCollection();
+		if(count($result['rows']) == 0) {
 			return $documents;
 		}
 

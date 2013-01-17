@@ -30,7 +30,7 @@ Add this to your `composer.json`:
 ```json
 {
 	"require": {
-		"basement/basement": "0.2.0"
+		"basement/basement": "0.3.0"
 	}
 }
 ```
@@ -260,6 +260,24 @@ $doc->firstname = 'Michael';
 echo $doc->firstname; // Returns 'Michael'
 ```
 
+Most of the time, a bunch of documents will be returned. In order to make it easer for you to work with them, they are not plain arrays but instances of `Basement\data\DocumentCollection`. You can work with them like arrays, but they also provide iterator-like functionality:
+
+```php
+// Read Documents from a view
+$result = $client->findByView('posts', 'all', $query);
+$documents = $result->get();
+
+// The amount of the returned documents.
+$documents->size();
+
+// Walk forwards and/or backwards between the documents.
+$documents->current();
+$documents->next();
+$documents->prev();
+```
+
+Of course, you can still use array-like access and `foreach` loops.
+
 Working with Views
 ------------------
 Working with views is naturally a little bit different than querying by a unique key. While the process "behind the scenes" is completely different, both the SDK and Basement are trying to keep the interface as uniform as possible. Please refer to the official Couchbase Server 2.0 documentation on how to create design documents and views.
@@ -378,7 +396,6 @@ Roadmap
 -------
 Here is the rough roadmap towards 1.0 (in the order of when they will be implemented):
 
-* Enhanced Collection classes for easier usage
 * Basic model functionality (Create, Save, Update, Delete, Proxy find methods, Access to multiple connections from a model-property, Automatic type-setting)
 * Enhanced Query-class tests (may be delivered by the SDK anyway)
 * Design Document Management (adding, listing, deleting)
